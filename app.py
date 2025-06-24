@@ -108,7 +108,6 @@ def require_login(func):
         return func(*a, **k)
     return wrapper
 
-# FORCE LOGIN FOR ALMOST ALL ROUTES (except login, logout, static, field_manager)
 @app.before_request
 def require_login_for_all():
     allowed_endpoints = {'login', 'static', 'logout', 'field_manager'}
@@ -288,6 +287,7 @@ def export_excel():
 @app.route('/export/pdf')
 @require_login
 def export_pdf():
+    from fpdf import FPDF
     fields = get_fields()
     conn = get_db_connection()
     user_email = session['user_email']
@@ -297,20 +297,65 @@ def export_pdf():
     else:
         entries = conn.execute('SELECT * FROM biodata WHERE owner_email=? ORDER BY id ASC', (user_email,)).fetchall()
     conn.close()
+
     file_path = "biodata_export.pdf"
-    pdf = FPDF(orientation='L', unit='mm', format='A4')
-    pdf.add_page()
-    pdf.set_font("Arial", size=8)
-    col_width = 277 / max(1, len(fields))
-    row_height = 7
-    for _, label in fields:
-        pdf.cell(col_width, row_height, str(label), border=1)
-    pdf.ln(row_height)
-    for row in entries:
-        for field, _ in fields:
-            val = str(row[field]) if row[field] is not None else ''
-            pdf.cell(col_width, row_height, val, border=1)
-        pdf.ln(row_height)
+
+    class BioPDF(FPDF):
+        def header(self):
+            # Logo
+            logo_path = os.path.join('static', 'logo.png')
+            if os.path.exists(logo_path):
+                self.image(logo_path, 10, 8, 24)
+                self.set_xy(36, 10)
+            else:
+                self.set_xy(10, 10)
+            self.set_font('Arial', 'B', 16)
+            self.cell(0, 10, "ATS Biodata", ln=1, align='C')
+            self.set_font('Arial', '', 9)
+            self.cell(0, 7, f"Exported on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=1, align='C')
+            self.ln(2)
+
+        def footer(self):
+            self.set_y(-15)
+            self.set_font('Arial', 'I', 8)
+            self.cell(0, 10, f'Page {self.page_no()}', align='C')
+
+    pdf = BioPDF(orientation='P', unit='mm', format='A4')
+    pdf.set_auto_page_break(auto=True, margin=20)
+    label_width = 60
+    value_width = 120
+    row_height = 8
+
+    for idx, row in enumerate(entries):
+        pdf.add_page()
+        # Optionally, a big title with S.No, Name or other key info at top
+        pdf.set_font('Arial', 'B', 14)
+        name = row['name'] if 'name' in row.keys() else ""
+        sno = row['sno'] if 'sno' in row.keys() else ""
+        pdf.cell(0, 12, f"Biodata Entry #{idx+1}  {name}", ln=1, align='C')
+        pdf.ln(2)
+        pdf.set_font('Arial', '', 10)
+        # Draw all fields in two columns
+        for field_key, field_label in fields:
+            if field_key in ('id',):  # skip database id
+                continue
+            value = row[field_key] if field_key in row.keys() and row[field_key] is not None else ''
+            pdf.set_font('Arial', 'B', 10)
+            pdf.cell(label_width, row_height, f"{field_label}:", border=0, align='R')
+            pdf.set_font('Arial', '', 10)
+            # For long values, wrap text
+            if isinstance(value, str) and len(value) > 60:
+                pdf.multi_cell(value_width, row_height, value, border=0, align='L')
+            else:
+                pdf.cell(value_width, row_height, str(value), ln=1, border=0, align='L')
+        # Optional: add a horizontal line at end of entry
+        if idx < len(entries) - 1:
+            pdf.ln(2)
+            pdf.set_draw_color(180,180,180)
+            pdf.set_line_width(0.3)
+            pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+            pdf.ln(2)
+
     pdf.output(file_path)
     return send_file(file_path, as_attachment=True)
 
@@ -333,7 +378,6 @@ def field_manager():
         key = request.form.get('field_key', '').strip()
         label = request.form.get('field_label', '').strip()
         pos = request.form.get('field_pos')
-        # Add at end
         if action == 'add':
             if not key or not label:
                 flash("Key and label required.", "danger")
@@ -345,7 +389,6 @@ def field_manager():
                 fields.append((key, label))
                 save_fields(fields)
                 flash("Field added at end.", "success")
-        # Insert at position (1-based)
         elif action == 'insert':
             try:
                 pos = int(pos)
@@ -363,7 +406,6 @@ def field_manager():
                 fields.insert(pos-1, (key, label))
                 save_fields(fields)
                 flash(f"Field inserted at position {pos}.", "success")
-        # Rename field label
         elif action == 'rename' and idx is not None:
             idx = int(idx)
             if fields[idx][0] in reserved:
@@ -372,7 +414,6 @@ def field_manager():
                 fields[idx] = (fields[idx][0], label)
                 save_fields(fields)
                 flash("Field label renamed.", "success")
-        # Remove field
         elif action == 'remove' and idx is not None:
             idx = int(idx)
             if fields[idx][0] in reserved:
@@ -383,21 +424,18 @@ def field_manager():
                 if os.path.exists(DB_PATH):
                     os.remove(DB_PATH)
                 flash("Field removed. All biodata deleted (DB reset).", "warning")
-        # Move up
         elif action == 'moveup' and idx is not None:
             idx = int(idx)
             if idx > 0:
                 fields[idx-1], fields[idx] = fields[idx], fields[idx-1]
                 save_fields(fields)
                 flash("Field moved up.", "info")
-        # Move down
         elif action == 'movedown' and idx is not None:
             idx = int(idx)
             if idx < len(fields)-1:
                 fields[idx+1], fields[idx] = fields[idx], fields[idx+1]
                 save_fields(fields)
                 flash("Field moved down.", "info")
-        # Save and restart
         elif action == 'save_and_exit':
             save_fields(fields)
             if os.path.exists(DB_PATH):
