@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Biodata Entries</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <style>
+        table { font-size: 0.93em; }
+    </style>
+</head>
+<body>
+<div class="container mt-3">
+    <h3>Biodata Entries</h3>
+    <form method="get" class="mb-2">
+        <input type="text" name="search" placeholder="Search" value="{{ search }}" class="form-control d-inline" style="width:240px;display:inline-block;">
+        <button type="submit" class="btn btn-info ms-2">Search</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary ms-2">Clear</a>
+        <a href="{{ url_for('add_entry') }}" class="btn btn-success ms-2">Add New</a>
+        <a href="{{ url_for('export_excel') }}" class="btn btn-warning ms-2">Export Excel</a>
+        <a href="{{ url_for('export_pdf') }}" class="btn btn-warning ms-2">Export PDF</a>
+        <a href="{{ url_for('field_manager') }}" class="btn btn-dark ms-2">Field Manager</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger ms-2">Logout</a>
+    </form>
+    <table class="table table-bordered table-hover table-sm">
+        <thead class="table-dark">
+            <tr>
+                {% for field, label in fields %}
+                    <th>{{ label }}</th>
+                {% endfor %}
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for entry in entries %}
+            <tr>
+                {% for field, label in fields %}
+                    <td>{{ entry[field] }}</td>
+                {% endfor %}
+                <td>
+                    <a href="{{ url_for('edit_entry', entry_id=entry['id']) }}" class="btn btn-sm btn-primary">Edit</a>
+                    <form method="post" action="{{ url_for('delete_entry', entry_id=entry['id']) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this entry?');">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} mt-3">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+</div>
+</body>
+</html>

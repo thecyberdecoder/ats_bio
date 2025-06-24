@@ -1,0 +1,23 @@
+[
+  ["prefix", "Team Prefix"], ["sno", "S.No"], ["GPF_CPS_No", "GPF/CPS No"], ["IFHRMS_No", "IFHRMS No"],
+  ["Salutation", "Salutation"], ["name", "Name"], ["father_name", "Father's Name"], ["dob", "Date of Birth"],
+  ["gender", "Gender"], ["Mobile_no", "CUG Mobile No"], ["Email_ID", "Email ID"], ["PAN_No", "PAN No"],
+  ["Aadhar_No", "Aadhar No"], ["Designation", "Designation"], ["Marital_Status", "Marital Status"],
+  ["Native_Place_District", "Native Place/District"], ["address", "Address"],
+  ["Police_Station_Limit", "Police Station Limit"], ["Native_Assembly", "Native Assembly"],
+  ["Blood_Group", "Blood Group"], ["Date_of_Entry_into_service", "Date of Entry into service"],
+  ["Date_of_Retirement", "Date of Retirement"], ["Appointment_Rank", "Appointment Rank"],
+  ["Direct_20_Rank_Promoted_ACP", "Direct/20%/Rank Promoted/ACP"], ["Date_of_Promotion_in_Present_Rank", "Date of Promotion in Present Rank"],
+  ["Date_of_Completion_of_Probation", "Date of Completion of Probation"],
+  ["Religion_Hindu_Muslim_Christian", "Religion(Hindu/Muslim/Christian)"],
+  ["Community_SC_ST_BC_MBC", "Community (SC/ST/BC/MBC)"], ["Caste", "Caste"],
+  ["Educational_Qualification", "Educational Qualification"], ["Additional_Technical_Qualification", "Additional/Technical Qualification"],
+  ["Languages_Known", "Languages Known"], ["Law_Mark", "Law Mark"], ["Rewards", "Rewards"],
+  ["Medals_Received", "Medals Received"], ["Default", "Default"], ["Present_Station", "Present Station"],
+  ["Date_of_Relieving_on_Formerly_District_City", "Date of Relieving on Formerly District/City"],
+  ["Date_of_Joining_in_ATS", "Date of Joining in ATS"], ["ATS_Unit", "ATS Unit"],
+  ["bank", "Bank Name"], ["account", "Account No"], ["ifsc", "IFSC"], ["remarks", "Remarks"],
+  ["date_increment", "Date of Increment"], ["notify_days_increment", "Notify Days Before Increment"],
+  ["date_superannuation", "Date of Superannuation"], ["notify_days_superannuation", "Notify Days Before Superannuation"],
+  ["role", "Role"], ["owner_email", "Owner Email"]
+]
